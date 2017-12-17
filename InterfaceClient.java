@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import javax.swing.JFrame;
@@ -16,19 +18,54 @@ import javax.swing.JTextField;
 public class InterfaceClient {
 
 	BufferedReader in;
-	PrintStream out;
+	//PrintStream out;
 	JFrame frame = new JFrame("Chat");
-	JTextField textField = new JTextField(40);
+	
+	MulticastSocket ms;
+	InetAddress gpAddress;
+	int gpPort;
+	 
+	JTextField msgField = new JTextField(40);
 	JTextArea messageArea = new JTextArea(40, 40);
 
-	public InterfaceClient(Socket clientSocket) throws IOException {
+	JLabel gpAddr = new JLabel("IP of the group :");
+	JTextField gpAddrField = new JTextField(20);
+	JLabel gpPort = new JLabel("Port of the group :");;
+	JTextField gpPortField = new JTextField(10);
+	JButton btnMulticast = new Jbutton("Join group");
+	JPanel panelMulticast = new JPanel();
+	
+	public MulticastSocket getMS()
+	{
+		return ms;
+	}
+	
+	public InterfaceClient(/*MulticastSocket ms /*Socket clientSocket*/) throws IOException {
 		
-		out = new PrintStream(clientSocket.getOutputStream());
+		//out = new PrintStream(clientSocket.getOutputStream());
 		// Layout GUI
-		textField.setEditable(true);
-		textField.setSelectedTextColor(Color.BLUE);
+		panelMulticast.add(gpAddr);
+		panelMulticast.add(gpAddrField);
+		panelMulticast.add(gpPort);
+		panelMulticast.add(gpPortField);
+		btnMulticast.addActionListener(new ActionListener() {
+			/**
+			 * @param e
+			 *            
+			 */
+			public void actionPerformed(ActionEvent e) {
+				 this.gpAddress = InetAddress.getByName(gpAddrField.getText()); 
+		      	 this.gpPort = Integer.parseInt(gpPortField.getText());
+		      	 ms = new MulticastSocket(gpPort);
+		      	 ms.joinGroup(gpAddress);
+			}
+		});
+		panelMulticast.add(btnMulticast);
+		msgField.setEditable(true);
+		msgField.setSelectedTextColor(Color.BLUE);
 		messageArea.setEditable(false);
-		frame.getContentPane().add(textField, "North");
+		frame.getContentPane().add(panelMulticast, "North");
+		frame.getContentPane().add(msgField, "South");
 		frame.getContentPane().add(new JScrollPane(messageArea), "Center");
 		frame.pack();
 
@@ -40,8 +77,10 @@ public class InterfaceClient {
 			 *            touche Entrée.
 			 */
 			public void actionPerformed(ActionEvent e) {
-				out.println(textField.getText());
-				textField.setText("");
+				//out.println(msgField.getText());
+				String toSend = msgField.getText();
+				ms.send(new DatagramPacket (toSend.getBytes(), toSend.length(),gpAddr, gpPort));
+				msgField.setText("");
 			}
 		});
 	}

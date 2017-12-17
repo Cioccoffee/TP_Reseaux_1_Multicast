@@ -19,14 +19,18 @@ import javax.swing.JTextField;
 
 public class ClientThread extends Thread {
 	
-	private Socket clientSocket;
+	//private Socket clientSocket;
 	private InterfaceClient ic;
-	
+	private MulticastSocket ms;
+	private InetAddress gpAddr;
+	private int gpPort;
 	private boolean sender;
 	public boolean keepOn = true;
 
-	ClientThread(Socket s, boolean send, InterfaceClient ic) {
-		this.clientSocket = s;
+	ClientThread(MulticastSocket ms, boolean send, InterfaceClient ic) {
+		
+		this.ms = ms;
+		//ms.joinGroup(gpAddress);
 		this.sender = send;
 		this.ic = ic;
 	}
@@ -51,35 +55,7 @@ public class ClientThread extends Thread {
 
 		try {
 			
-		//	ic.messageArea.append(toPrint + "\n");
-			
-//			BufferedReader stdIn = null;
-//			stdIn = new BufferedReader(new InputStreamReader(System.in));
-			//stdIn = new BufferedReader(ic.out);
-			
-//			PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
-//			String toPrint = "";
-
-			
-			//if (msg == null) {
-//				while (true) {
-//					//toPrint = ic.out;
-//					//System.out.println("kjdf: " + toP);
-//					//toPrint = stdIn.readLine(); // lit depuis le clavier
-//					System.out.println("Information read from stdIn");
-//					if (toPrint.equals("exit")) {
-//						keepOn = false;
-//						break;
-//					}
-					//ic.messageArea.append(toPrint + "\n");
-					//socOut.println(toPrint);
-				//}
-			/*} else {
-				toPrint = msg;
-				socOut.println(toPrint);
-			}*/
-
-			// ecrit dans le socket
+		
 
 		} catch (Exception e) {
 			System.err.println("Error in runSending:" + e);
@@ -95,10 +71,16 @@ public class ClientThread extends Thread {
 
 			while (true) {
 				//String out = "";
-				String out = socIn.readLine(); // lit depuis le socket
+				//String out = socIn.readLine(); // lit depuis le socket
+				
+				int sizereceived = 1000;
+				byte[] bytereceived = new byte[sizereceived];
+				ms.receive(new DatagramPacket(bytereceived,sizereceived));
+				String msgreceived = bytereceived.toString();
+				System.out.println(msgreceived);
 
-				ic.messageArea.append(out + "\n");
-				System.out.println(out);
+				ic.messageArea.append(msgreceived + "\n");
+				System.out.println(msgreceived);
 
 				//history.add(out);
 			}
